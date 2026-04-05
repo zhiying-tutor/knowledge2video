@@ -1,0 +1,76 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+test_env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Manim output
+media/
+CASES/
+*.mp4
+*.mov
+
+# Generated outputs (videos & metadata)
+data/outputs/videos/*
+data/outputs/metadata/*
+!data/outputs/videos/.gitkeep
+!data/outputs/metadata/.gitkeep
+
+# Large assets (reference images, demo videos, PDF)
+src/assets/videos/
+
+# API keys and secrets
+.env
+*.key
+api_config.json
+
+# Test outputs
+*.log
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Ignore runtime logs
+logs/
+*.logsrc/api_config.json

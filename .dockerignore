@@ -1,0 +1,52 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.eggs
+dist
+build
+*.egg
+
+# Virtual environments
+.venv
+venv
+env
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Development files
+*.bat
+uv.lock
+
+# Test/Debug files
+test_*.py
+debug_*.py
+temp_*.java
+
+# Large media files (will be generated at runtime)
+media/
+src/CASES/
+src/assets/videos/
+data/outputs/
+
+# Documentation assets (not needed at runtime)
+src/assets/code2video-arxiv.pdf
+src/assets/code2video-demo.gif

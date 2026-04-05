@@ -1,0 +1,31 @@
+{
+    "api_key": "真实的全局api_key",
+    "gemini": {
+        "base_url": "https://vip.dmxapi.com/v1",
+        "api_version": "", 
+        "model": "gemini-3.1-pro-preview"
+    },
+    "gpt-41": {
+        "base_url": "https://vip.dmxapi.com/v1",
+        "api_version": "2024-03-01-preview", 
+        "model": "gpt-4o" 
+    },
+    "gpt5": {
+        "base_url": "https://vip.dmxapi.com/v1",
+        "api_version": "",
+        "model": "gpt-5.4"
+    },
+    "claude": {
+      "base_url": "https://vip.dmxapi.com/v1",
+        "api_version": "...",
+        "model": "claude-opus-4-5-20251101-cc"
+    },
+    "gpt4o": {
+        "base_url": "https://vip.dmxapi.com/v1",
+        "api_version": "2024-03-01-preview", 
+        "model": "gpt-4o"
+    },
+    "iconfinder": {
+        "api_key": "YOUR_ICONFINDER_KEY"
+    }
+}

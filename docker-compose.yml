@@ -1,0 +1,108 @@
+# ============================================================================
+# Code2Video Docker Compose 编排
+# 
+# 启动: docker-compose up -d --build
+# 停止: docker-compose down
+# 日志: docker-compose logs -f
+# ============================================================================
+
+version: "3.8"
+
+services:
+  # ==========================================================================
+  # Redis - 消息队列 & 结果存储
+  # ==========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: code2video-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ==========================================================================
+  # FastAPI - API 服务
+  # ==========================================================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: code2video-api
+    ports:
+      - "${API_PORT:-8080}:8080"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - API_KEYS=${API_KEYS:-dev-api-key-12345}
+      - DEFAULT_API=${DEFAULT_API:-claude}
+      - DEBUG=${DEBUG:-false}
+      - MAX_WORKERS=${MAX_WORKERS:-}
+      - OUTPUT_DIR=data/outputs
+      - VIDEO_DIR=data/outputs/videos
+      - METADATA_DIR=data/outputs/metadata
+    volumes:
+      # 共享输出目录（API 和 Worker 都需要访问）
+      - video_data:/app/data/outputs
+      # LLM API 密钥配置文件（从宿主机挂载，可选）
+      # - ./src/api_config.json:/app/src/api_config.json:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
+  # ==========================================================================
+  # Celery Worker - 视频生成后台任务
+  # ==========================================================================
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: code2video-worker
+    # 覆盖默认启动命令，启动 Celery Worker
+    command: >
+      python -m celery -A src.api.tasks.celery_app worker
+      --loglevel=info
+      --pool=solo
+      -Q video_generation
+      --concurrency=1
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DEFAULT_API=${DEFAULT_API:-claude}
+      - MAX_WORKERS=${MAX_WORKERS:-}
+      - OUTPUT_DIR=data/outputs
+      - VIDEO_DIR=data/outputs/videos
+      - METADATA_DIR=data/outputs/metadata
+    volumes:
+      # 共享输出目录（与 API 服务共享）
+      - video_data:/app/data/outputs
+      # LLM API 密钥配置文件（从宿主机挂载，可选）
+      # - ./src/api_config.json:/app/src/api_config.json:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+# ============================================================================
+# 数据卷
+# ============================================================================
+volumes:
+  redis_data:
+    driver: local
+  video_data:
+    driver: local
