@@ -59,19 +59,61 @@ def retry_with_backoff(operation_name: str, func: Callable, max_retries: int, ba
     raise RuntimeError(f"{operation_name} failed: {last_error}")
 
 
+# ── 概述旁白扩写的特殊提示词 ─────────────────────────────────
+_OVERVIEW_EXPANSION_EXAMPLES = """
+你是教学视频旁白润色器，当前正在处理「课程概述/目录导览」部分的旁白。
+
+任务：
+- 将下面这条画面短句扩写成一条更自然、口语化、适合 TTS 播放的单句旁白
+- 必须像一位经验丰富的老师在课堂上介绍课程大纲一样自然流畅
+- 不要每句都用"接下来"开头，要有变化和衔接感
+- 必须保持原意，不要引入新知识点
+- 必须是"最小增量扩写"，不要写成长段
+- 输出只允许是一句纯文本，不要加引号、编号、解释
+
+参考范例（画面短句 → 优秀旁白）：
+- "本视频将分为以下几个部分进行讲解" → "在正式开始之前呢，我们先来看一下本节课的整体脉络"
+- "第一部分，基本概念" → "首先，我们会从基本概念入手，帮大家打好基础"
+- "第二部分，核心原理" → "在此基础上，第二部分我们来深入了解一下核心原理"
+- "第三部分，代码实现" → "理解了原理之后，第三部分我们就来动手写代码"
+- "第四部分，实战案例" → "第四部分，我们通过一个实战案例来巩固所学的知识"
+- "第五部分，性能优化" → "然后，第五部分我们会讲一讲性能优化的技巧"
+- "第六部分，常见问题" → "最后，我们会总结一些常见的问题和注意事项"
+- "好的，接下来让我们正式开始具体内容的学习吧" → "好，大致了解了课程安排之后，我们就正式进入第一部分的学习"
+
+画面短句：
+"""
+
+
+def _is_overview_screen_text(screen_text: str) -> bool:
+    """判断 screen_text 是否属于概述部分（包含"第X部分"等特征词）。"""
+    import re as _re
+    if _re.search(r"第[一二三四五六七八九十\d]+部分", screen_text):
+        return True
+    if "本视频将分为" in screen_text:
+        return True
+    if "让我们正式开始" in screen_text or "开始具体内容的学习" in screen_text:
+        return True
+    return False
+
+
 def expand_screen_text_to_spoken_script(
     screen_text: str,
     api_func: Callable,
     max_retries: int = 3,
     max_tokens: int = 300,
 ) -> str:
-    prompt = f"""
+    # 概述部分使用带范例引导的特殊提示词
+    if _is_overview_screen_text(screen_text):
+        prompt = f"""{_OVERVIEW_EXPANSION_EXAMPLES}{screen_text}""".strip()
+    else:
+        prompt = f"""
 你是教学视频旁白润色器。
 
 任务：
 - 将下面这条画面短句扩写成一条更自然、口语化、适合 TTS 播放的单句旁白
 - 必须保持原意，不要引入新知识点
-- 必须是“最小增量扩写”，不要写成长段
+- 必须是"最小增量扩写"，不要写成长段
 - 输出只允许是一句纯文本，不要加引号、编号、解释
 
 画面短句：
@@ -323,6 +365,37 @@ def _extract_step_index_from_call(call: ast.Call) -> int | None:
     return int(step_index)
 
 
+def _extract_step_index_from_subscript_arg(call: ast.Call, arg_index: int = 0) -> int | None:
+    """
+    从 steps[N]["audio_path"] 或 steps[N]["audio_duration"] 形式的参数中提取步骤索引 N。
+
+    用于解析 add_sound(steps[0]["audio_path"]) 和 wait(steps[0]["audio_duration"]) 等调用。
+    """
+    if len(call.args) <= arg_index:
+        return None
+
+    candidate = call.args[arg_index]
+    if not isinstance(candidate, ast.Subscript):
+        return None
+
+    # candidate 可能是 steps[N]["key"] 形式（双层下标）
+    inner = candidate.value
+    if isinstance(inner, ast.Subscript):
+        # steps[N]["key"] → inner.value 是 steps, inner.slice 是 N
+        if not isinstance(inner.value, ast.Name) or inner.value.id != "steps":
+            return None
+        step_index = _extract_constant_number(inner.slice)
+        if step_index is not None:
+            return int(step_index)
+    elif isinstance(candidate.value, ast.Name) and candidate.value.id == "steps":
+        # steps[N] 形式（单层下标）
+        step_index = _extract_constant_number(candidate.slice)
+        if step_index is not None:
+            return int(step_index)
+
+    return None
+
+
 def _timeline_events_from_statements(statements, step_count: int, events: list[tuple[str, float]]):
     for stmt in statements:
         if isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Call) and isinstance(stmt.value.func, ast.Attribute):
@@ -336,11 +409,26 @@ def _timeline_events_from_statements(statements, step_count: int, events: list[t
                 events.append(("audio", float(step_index)))
                 continue
 
+            if attr == "add_sound":
+                # 识别 self.add_sound(steps[N]["audio_path"]) 模式
+                step_index = _extract_step_index_from_subscript_arg(call, arg_index=0)
+                if step_index is not None and 0 <= step_index < step_count:
+                    events.append(("audio", float(step_index)))
+                continue
+
             if attr == "wait":
                 if call.args:
+                    # 先尝试常量数字
                     wait_duration = _extract_constant_number(call.args[0])
                     if wait_duration is not None and wait_duration > 0:
                         events.append(("silence", wait_duration))
+                    else:
+                        # 尝试识别 steps[N]["audio_duration"] 形式（封面模板使用）
+                        step_index = _extract_step_index_from_subscript_arg(call, arg_index=0)
+                        if step_index is not None and 0 <= step_index < step_count:
+                            # wait 的时长等于该 step 的音频时长，但此处我们不重复
+                            # 插入音频（add_sound 已处理），只需静音占位即可跳过
+                            pass
                 continue
 
             if attr == "play":
@@ -378,6 +466,9 @@ def _timeline_events_from_statements(statements, step_count: int, events: list[t
                 threshold = _extract_constant_number(test.comparators[0])
                 if threshold is not None:
                     condition_is_true = step_count > threshold
+            # Support the simple `if steps:` truthiness check used by cover template.
+            elif isinstance(test, ast.Name) and test.id == "steps":
+                condition_is_true = step_count > 0
 
             branch = stmt.body if condition_is_true else stmt.orelse
             _timeline_events_from_statements(branch, step_count, events)

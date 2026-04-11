@@ -1,16 +1,23 @@
 # CURRENT.md
 
 ## 状态声明
-K2V V5.0 `Audio-Text Mono-Track Sync & Remuxing Architecture` 已成功落地并完成状态固化。
 
-本轮战役已完成的核心能力包括：
+K2V V5.2 `Cover & Overview Enhanced — 基础视觉增强` 已完成开发。
+
+本轮在 V5.1 基础上新增的核心能力：
+
+- **封面 (Cover) 升级**：封面现在包含动态生成的介绍性旁白（TTS），不再是纯视觉，与整体音频链打通。
+- **概述 (Overview) 升级**：增加 AI 驱动的章节标题聚合逻辑，自动精简冗长的大纲标题，生成更紧凑、观感更好的导览画面。
+- **视觉风格对齐**：封面背景采用 135° 渐变，与预览页面及课程调性保持一致。
+- **模板化生产**：封面与概述均通过确定性模板（Template-based）生成，绕过 LLM Stage 3，确保 100% 渲染通过率。
+
+V5.0/V5.1 已有能力保持稳健：
+
 - `lecture_lines -> spoken_script -> section_steps` 旁车数据裂变
 - `tts-pro` 真实 TTS 落盘与物理测时
-- Stage 3 `play_synced_step(...)` 旁白时间轴调度
-- AST 覆盖校验
-- section 级 narration track 重建
-- FFmpeg 音轨回灌与最终有声成片输出
-- “局部静音验尸”已纳入正式验收基线，不再以“有 AAC 音轨”视为成功
+- AST 覆盖校验与时间轴回灌（Remux）
+- 最终有声成片合并
 
 ## 当前状态
+
 【待命状态】：等待指挥官下达新一轮战役的宏观战略目标。

@@ -49,8 +49,11 @@ services:
       - VIDEO_DIR=data/outputs/videos
       - METADATA_DIR=data/outputs/metadata
     volumes:
+      # 开发模式：挂载源代码，修改后重启即可生效
+      - ./src:/app/src
+      - ./prompts:/app/prompts
       # 共享输出目录（API 和 Worker 都需要访问）
-      - video_data:/app/data/outputs
+      - ./data/outputs:/app/data/outputs
       # LLM API 密钥配置文件（从宿主机挂载，可选）
       # - ./src/api_config.json:/app/src/api_config.json:ro
     depends_on:
@@ -89,8 +92,11 @@ services:
       - VIDEO_DIR=data/outputs/videos
       - METADATA_DIR=data/outputs/metadata
     volumes:
+      # 开发模式：挂载源代码，修改后重启即可生效
+      - ./src:/app/src
+      - ./prompts:/app/prompts
       # 共享输出目录（与 API 服务共享）
-      - video_data:/app/data/outputs
+      - ./data/outputs:/app/data/outputs
       # LLM API 密钥配置文件（从宿主机挂载，可选）
       # - ./src/api_config.json:/app/src/api_config.json:ro
     depends_on:
@@ -103,6 +109,4 @@ services:
 # ============================================================================
 volumes:
   redis_data:
-    driver: local
-  video_data:
     driver: local
