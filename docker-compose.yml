@@ -1,6 +1,6 @@
 # ============================================================================
-# Code2Video Docker Compose 编排
-# 
+# Knowledge2Video Docker Compose 编排
+#
 # 启动: docker-compose up -d --build
 # 停止: docker-compose down
 # 日志: docker-compose logs -f
@@ -14,7 +14,7 @@ services:
   # ==========================================================================
   redis:
     image: redis:7-alpine
-    container_name: code2video-redis
+    container_name: knowledge2video-redis
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
@@ -34,7 +34,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: code2video-api
+    container_name: knowledge2video-api
     ports:
       - "${API_PORT:-8080}:8080"
     environment:
@@ -74,7 +74,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: code2video-worker
+    container_name: knowledge2video-worker
     # 覆盖默认启动命令，启动 Celery Worker
     command: >
       python -m celery -A src.api.tasks.celery_app worker
