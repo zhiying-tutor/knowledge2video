@@ -10,7 +10,7 @@ class TeachingScene(Scene):
     RIGHT_MAX_HEIGHT = 5.5
 
     def _build_lecture_group(self, lecture_lines):
-        lecture_texts = [Text(line, font="Noto Sans SC", font_size=20, color="#2C1608") for line in lecture_lines]
+        lecture_texts = [Text(line, font="Noto Sans CJK SC", font_size=20, color="#2C1608") for line in lecture_lines]
         lecture_group = VGroup(*lecture_texts).arrange(DOWN, aligned_edge=LEFT, buff=0.3)
         return lecture_group
 
@@ -19,8 +19,8 @@ class TeachingScene(Scene):
         self.camera.background_color = "#FFFDF4"  # 温暖米白色背景
         
         # 大标题 - 必须使用加粗 weight="BOLD"，颜色 #BE8944
-        # 使用 Noto Sans SC 字体（跨平台：Linux/Windows/macOS）
-        self.title = Text(title_text, font="Noto Sans SC", font_size=28, color="#BE8944", weight="BOLD").to_edge(UP)
+        # 使用 Noto Sans CJK SC 字体（跨平台：Linux/Windows/macOS）
+        self.title = Text(title_text, font="Noto Sans CJK SC", font_size=28, color="#BE8944", weight="BOLD").to_edge(UP)
         self.add(self.title)
 
         # Left-side lecture content (bullets with "-")

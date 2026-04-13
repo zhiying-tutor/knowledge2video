@@ -107,7 +107,7 @@ def get_prompt3_code(
     
     # ❌ 错误写法 2：在注释中写"勾"或"叉"然后用 Text
     # 红叉表示不需要交换
-    wrong_mark = Text("✗", font="Noto Sans SC", font_size=28, color="#C84A2B")  # ❌ 错误！
+    wrong_mark = Text("✗", font="Noto Sans CJK SC", font_size=28, color="#C84A2B")  # ❌ 错误！
     ```
     
     **🔍 自检：如果你的代码中出现以下任何内容，必须改为 MathTex：**
@@ -136,13 +136,13 @@ def get_prompt3_code(
 
     ```python
     # ❌ 错误：整句 Text 会导致 log₂n / O(log n) 等符号渲染异常
-    Text("递归版本是O(log n)，递归深度最大为log₂n", font="Noto Sans SC", font_size=20, color="#2C1608")
+    Text("递归版本是O(log n)，递归深度最大为log₂n", font="Noto Sans CJK SC", font_size=20, color="#2C1608")
 
     # ✅ 正确：中文用 Text，数学片段用 MathTex，再组合
     lecture_line = VGroup(
-        Text("递归版本是", font="Noto Sans SC", font_size=20, color="#2C1608"),
+        Text("递归版本是", font="Noto Sans CJK SC", font_size=20, color="#2C1608"),
         MathTex(r"O(\\log n)", color="#2C1608").scale(0.65),
-        Text("，递归深度最大为", font="Noto Sans SC", font_size=20, color="#2C1608"),
+        Text("，递归深度最大为", font="Noto Sans CJK SC", font_size=20, color="#2C1608"),
         MathTex(r"\\log_2 n", color="#2C1608").scale(0.65)
     ).arrange(RIGHT, buff=0.06, aligned_edge=DOWN)
     ```
@@ -249,7 +249,7 @@ def get_prompt3_code(
     ```python
     # ✅ 正确：讲解文字必须使用 font_size=20
     new_lecture_texts = [
-        Text(line, font="Noto Sans SC", font_size=20, color="#2C1608") 
+        Text(line, font="Noto Sans CJK SC", font_size=20, color="#2C1608") 
         for line in new_lecture_lines
     ]
     new_lecture = VGroup(*new_lecture_texts).arrange(DOWN, aligned_edge=LEFT, buff=0.3)
@@ -464,12 +464,12 @@ def algo(data):
     cells = VGroup()
     for c in chars:
         sq = Square(side_length=0.5, color="#e4c8a6", fill_color="#fff7e8", fill_opacity=0.8)
-        txt = Text(c, font="Noto Sans SC", font_size=18, color="#2C1608")
+        txt = Text(c, font="Noto Sans CJK SC", font_size=18, color="#2C1608")
         txt.move_to(sq)  # 文字叠在方块中心
         cells.add(VGroup(sq, txt))  # 组合成一个单元
     cells.arrange(RIGHT, buff=0.05)  # 整体排列
 
-    label = Text("s = ", font="Noto Sans SC", font_size=20, color="#2C1608")
+    label = Text("s = ", font="Noto Sans CJK SC", font_size=20, color="#2C1608")
     row = VGroup(label, cells).arrange(RIGHT, buff=0.2)
 
     # ❌ 错误：方块和文字分开放入 VGroup 再 arrange（文字会被挤到右边！）
@@ -574,11 +574,11 @@ def algo(data):
     ```
 
     ### 强制约束 - 字体与配色
-    **【字体规则】** 所有 `Text()` 必须使用 `font="Noto Sans SC"`（跨平台中文字体）
+    **【字体规则】** 所有 `Text()` 必须使用 `font="Noto Sans CJK SC"`（跨平台中文字体）
     ```python
     # ✅ 正确示例
-    Text("标题文字", font="Noto Sans SC", font_size=28, color="#BE8944", weight="BOLD")
-    Text("讲解文字", font="Noto Sans SC", font_size=20, color="#2C1608")  # 讲解文字必须 font_size=20
+    Text("标题文字", font="Noto Sans CJK SC", font_size=28, color="#BE8944", weight="BOLD")
+    Text("讲解文字", font="Noto Sans CJK SC", font_size=20, color="#2C1608")  # 讲解文字必须 font_size=20
     ```
     
     **【🚨🚨🚨 数学表达式与特殊符号 - 必须用 MathTex！🚨🚨🚨】**
@@ -596,7 +596,7 @@ def algo(data):
     
     # ✅ 中文+数学混排
     VGroup(
-        Text("因为：", font="Noto Sans SC", font_size=20, color="#2C1608"),
+        Text("因为：", font="Noto Sans CJK SC", font_size=20, color="#2C1608"),
         MathTex(r"2^7 = 128 > 100", color="#9B6D0B").scale(0.8)
     ).arrange(RIGHT, buff=0.2)
     
